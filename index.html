@@ -5,19 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Margo</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="bg-slate-950">
     <div id="root"></div>
 
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react"
-      }
-    }
+    <script type="text/babel">
+        // 1. Get the icons from the Lucide library
+        const { Check, Plus, Edit2, Trash2, Star, Flame, Trophy, Target, Book, Feather, Crown, Heart, Sparkles, Sword, Shield, Zap } = lucide;
+        const { useState, useEffect } = React;
+
+        // 2. PASTE YOUR ENTIRE "const ProjectMargo = () => { ... }" CODE HERE
+        const ProjectMargo = () => {
+           // ... (all your logic)
+        };
+
+        // 3. Render it
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ProjectMargo />);
     </script>
-    <script type="module" src="main.js"></script>
 </body>
 </html>
