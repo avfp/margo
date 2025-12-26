@@ -1,7 +1,6 @@
-
-
-import React, { useState, useEffect } from 'react';
-import { Check, Plus, Edit2, Trash2, Star, Flame, Trophy, Target, Book, Feather, Crown, Heart, Sparkles, Sword, Shield, Zap } from 'lucide-react';
+// Start directly with the variable names
+const { useState, useEffect } = React;
+const { Check, Trash2, Flame, Book, Feather, Crown, Heart } = lucide;
 
 const ProjectMargo = () => {
   const pathIcons = {
@@ -828,5 +827,8 @@ const ProjectMargo = () => {
     </div>
   );
 };
-
-export default ProjectMargo;
+   return (
+     <div className="text-white">It works!</div>
+   );
+};
+// NO EXPORT DEFAULT HERE
