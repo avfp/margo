@@ -1,6 +1,6 @@
 // Game Data
 let gameData = {
-    character: { name: 'Hero', title: 'Novice Adventurer', avatar: '🧙‍♀️' },
+    character: { name: 'Margo', title: 'Novice Adventurer', avatar: '🧙‍♀️' },
     paths: {
         scholar: { name: 'The Scholar', level: 1, xp: 0, maxXp: 100, icon: '📚', color: 'from-cyan-400 via-blue-500 to-indigo-600', border: 'border-blue-500' },
         author: { name: 'The Author', level: 1, xp: 0, maxXp: 100, icon: '✍️', color: 'from-purple-400 via-violet-500 to-fuchsia-600', border: 'border-purple-500' },
