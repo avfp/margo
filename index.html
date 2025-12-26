@@ -1,16 +1,164 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Margo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { background-color: #020617; color: white; font-family: sans-serif; }
+        .path-card:hover { transform: translateY(-4px); transition: all 0.3s ease; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate-950">
+<body>
     <div id="root"></div>
 
-    <script type="text/babel" src="ProjectMargo.js"></script>
-    <script type="text/babel" src="main.js"></script>
-</body>
-</html>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // icon helper
+        const Icon = ({ name, size = 20, className = "" }) => {
+            const LucideIcon = lucide[name] || lucide.HelpCircle;
+            return <LucideIcon size={size} className={className} />;
+        };
+
+        const ProjectMargo = () => {
+            const [activeView, setActiveView] = useState('dashboard');
+            const [gameData, setGameData] = useState(() => {
+                const saved = localStorage.getItem('margo_v10');
+                return saved ? JSON.parse(saved) : {
+                    xp: 0,
+                    dailyHabits: [],
+                    completedToday: [],
+                    streaks: {},
+                    paths: {
+                        scholar: { name: 'The Scholar', level: 1, xp: 0, maxXp: 100, icon: 'Book', color: 'from-cyan-400 to-blue-600' },
+                        author: { name: 'The Author', level: 1, xp: 0, maxXp: 100, icon: 'Feather', color: 'from-purple-400 to-fuchsia-600' },
+                        leader: { name: 'The Leader', level: 1, xp: 0, maxXp: 100, icon: 'Crown', color: 'from-amber-400 to-orange-600' },
+                        vessel: { name: 'The Vessel', level: 1, xp: 0, maxXp: 100, icon: 'Heart', color: 'from-pink-400 to-rose-600' }
+                    }
+                };
+            });
+
+            useEffect(() => {
+                localStorage.setItem('margo_v10', JSON.stringify(gameData));
+            }, [gameData]);
+
+            const addXP = (pathKey, amount) => {
+                setGameData(prev => {
+                    const path = prev.paths[pathKey];
+                    let nXp = path.xp + amount;
+                    let nLvl = path.level;
+                    let nMax = path.maxXp;
+                    while (nXp >= nMax) { nXp -= nMax; nLvl++; nMax = Math.floor(nMax * 1.5); }
+                    return {
+                        ...prev,
+                        paths: { ...prev.paths, [pathKey]: { ...path, xp: Math.max(0, nXp), level: nLvl, maxXp: nMax } },
+                        xp: prev.xp + amount
+                    };
+                });
+            };
+
+            const addQuest = (name, pathKey) => {
+                const id = Date.now().toString();
+                setGameData(prev => ({
+                    ...prev,
+                    dailyHabits: [...prev.dailyHabits, { id, name, pathKey }]
+                }));
+            };
+
+            const toggleQuest = (id) => {
+                const habit = gameData.dailyHabits.find(h => h.id === id);
+                const isDone = gameData.completedToday.includes(id);
+                setGameData(prev => ({
+                    ...prev,
+                    completedToday: isDone ? prev.completedToday.filter(i => i !== id) : [...prev.completedToday, id],
+                    streaks: { ...prev.streaks, [id]: isDone ? Math.max(0, (prev.streaks[id] || 1) - 1) : (prev.streaks[id] || 0) + 1 }
+                }));
+                addXP(habit.pathKey, isDone ? -15 : 15);
+            };
+
+            const deleteQuest = (id) => {
+                setGameData(prev => ({
+                    ...prev,
+                    dailyHabits: prev.dailyHabits.filter(h => h.id !== id),
+                    completedToday: prev.completedToday.filter(i => i !== id)
+                }));
+            };
+
+            const Dashboard = () => (
+                <div className="space-y-6">
+                    <div className="bg-slate-900 border-2 border-purple-500 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10"><Icon name="Sparkles" size={100} /></div>
+                        <h2 className="text-sm uppercase tracking-widest text-purple-400 font-bold mb-1">Hero Level {Math.floor(gameData.xp/200) + 1}</h2>
+                        <h1 className="text-5xl font-black mb-4 tracking-tighter">{gameData.xp} <span className="text-xl text-slate-500 uppercase">Total XP</span></h1>
+                        <div className="flex gap-2">
+                            {gameData.completedToday.length} Quests Completed Today
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(gameData.paths).map(([key, path]) => (
+                            <div key={key} className="bg-slate-900 p-6 rounded-2xl border border-white/10 path-card">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg bg-gradient-to-br ${path.color}`}><Icon name={path.icon} /></div>
+                                        <span className="font-bold text-lg">{path.name}</span>
+                                    </div>
+                                    <span className="text-yellow-500 font-bold">Lvl {path.level}</span>
+                                </div>
+                                <div className="h-2 bg-black rounded-full overflow-hidden mb-2">
+                                    <div className={`h-full bg-gradient-to-r ${path.color}`} style={{width: `${(path.xp/path.maxXp)*100}%`}}></div>
+                                </div>
+                                <p className="text-xs text-slate-500 uppercase font-bold">{path.xp} / {path.maxXp} XP to next level</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const QuestList = () => {
+                const [val, setVal] = useState('');
+                const [pk, setPk] = useState('scholar');
+                return (
+                    <div className="space-y-6">
+                        <div className="bg-slate-900 p-4 rounded-2xl border border-purple-500/50 flex gap-2">
+                            <input className="bg-transparent flex-1 p-2 outline-none border-b border-white/10 focus:border-purple-500 transition" placeholder="New Quest Name..." value={val} onChange={e=>setVal(e.target.value)} />
+                            <select className="bg-slate-800 rounded-lg px-3 text-sm font-bold outline-none" value={pk} onChange={e=>setPk(e.target.value)}>
+                                {Object.keys(gameData.paths).map(k=><option key={k} value={k}>{k.toUpperCase()}</option>)}
+                            </select>
+                            <button className="bg-purple-600 hover:bg-purple-500 p-3 rounded-xl transition" onClick={()=>{if(val){addQuest(val,pk);setVal('')}}}><Icon name="Plus" /></button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                            {gameData.dailyHabits.length === 0 && <p className="text-center text-slate-600 py-10 italic">No quests active. Add one above to begin.</p>}
+                            {gameData.dailyHabits.map(h => (
+                                <div key={h.id} className="bg-slate-900 p-5 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition">
+                                    <div className="flex items-center gap-5">
+                                        <button onClick={()=>toggleQuest(h.id)} className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center transition ${gameData.completedToday.includes(h.id) ? 'bg-green-600 border-green-400' : 'border-slate-700 hover:border-purple-500'}`}>
+                                            {gameData.completedToday.includes(h.id) && <Icon name="Check" size={24} />}
+                                        </button>
+                                        <div>
+                                            <p className={`text-lg font-bold ${gameData.completedToday.includes(h.id) ? 'line-through text-slate-600' : 'text-white'}`}>{h.name}</p>
+                                            <div className="flex items-center gap-2 text-orange-500 font-black text-xs">
+                                                <Icon name="Flame" size={14} /> {(gameData.streaks[h.id] || 0)} DAY STREAK
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onClick={()=>deleteQuest(h.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-600 hover:text-red-500 transition"><Icon name="Trash2" /></button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min
